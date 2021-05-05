@@ -71,18 +71,109 @@ const addBookHandler = (request, h) => {
   return response;
 };
 
-const getAllBooksHandler = () => ({
-  status: 'success',
-  data: {
-    books,
-  },
-});
+const getAllBooksHandler = (request, h) => {
+  const { name, reading, finished } = request.query;
+
+  if (name) {
+    const response = h.response({
+      status: 'success',
+      data: {
+        books: books.filter((book) => book.name.toLowerCase().includes(name.toLowerCase()))
+          .map((b) => ({
+            id: b.id,
+            name: b.name,
+            publisher: b.publisher,
+          })),
+      },
+    });
+    response.code(200);
+    return response;
+  }
+
+  if (reading === '1') {
+    const response = h.response({
+      status: 'success',
+      data: {
+        books: books.filter((book) => book.reading === true).map((b) => ({
+          id: b.id,
+          name: b.name,
+          publisher: b.publisher,
+        })),
+      },
+    });
+
+    response.code(200);
+    return response;
+  }
+
+  if (reading === '0') {
+    const response = h.response({
+      status: 'success',
+      data: {
+        books: books.filter((book) => book.reading === false).map((b) => ({
+          id: b.id,
+          name: b.name,
+          publisher: b.publisher,
+        })),
+      },
+    });
+
+    response.code(200);
+    return response;
+  }
+
+  if (finished === '1') {
+    const response = h.response({
+      status: 'success',
+      data: {
+        books: books.filter((book) => book.finished === true).map((b) => ({
+          id: b.id,
+          name: b.name,
+          publisher: b.publisher,
+        })),
+      },
+    });
+
+    response.code(200);
+    return response;
+  }
+
+  if (finished === '0') {
+    const response = h.response({
+      status: 'success',
+      data: {
+        books: books.filter((book) => book.finished === false).map((b) => ({
+          id: b.id,
+          name: b.name,
+          publisher: b.publisher,
+        })),
+      },
+    });
+
+    response.code(200);
+    return response;
+  }
+
+  const response = h.response({
+    status: 'success',
+    data: {
+      books: books.map((book) => ({
+        id: book.id,
+        name: book.name,
+        publisher: book.publisher,
+      })),
+    },
+  });
+
+  response.code(200);
+  return response;
+};
 
 // eslint-disable-next-line consistent-return
 const getBookById = (request, h) => {
-  const { bookId } = request.params;
+  const { id } = request.params;
 
-  const book = books.filter((b) => b.id === bookId)[0];
+  const book = books.filter((b) => b.id === id)[0];
 
   if (book !== undefined) {
     return {
@@ -103,11 +194,12 @@ const getBookById = (request, h) => {
 };
 
 const editBookById = (request, h) => {
-  const { bookId } = request.params;
+  const { id } = request.params;
 
   const {
     name, year, author, summary, publisher, pageCount, readPage, reading,
   } = request.payload;
+
   const updatedAt = new Date().toISOString();
 
   if (name === undefined || name === '') {
@@ -130,7 +222,7 @@ const editBookById = (request, h) => {
     return response;
   }
 
-  const index = books.findIndex((book) => book.id === bookId);
+  const index = books.findIndex((book) => book.id === id);
 
   if (index !== -1) {
     books[index] = {
@@ -164,6 +256,33 @@ const editBookById = (request, h) => {
   return response;
 };
 
+// eslint-disable-next-line consistent-return
+const deleteBookById = (request, h) => {
+  const { id } = request.params;
+
+  const index = books.findIndex((book) => book.id === id);
+
+  if (index !== -1) {
+    books.splice(index, 1);
+
+    const response = h.response({
+      status: 'success',
+      message: 'Buku berhasil dihapus',
+    });
+
+    response.code(200);
+    return response;
+  }
+
+  const response = h.response({
+    status: 'fail',
+    message: 'Buku gagal dihapus. Id tidak ditemukan',
+  });
+
+  response.code(404);
+  return response;
+};
+
 module.exports = {
-  addBookHandler, getAllBooksHandler, getBookById, editBookById,
+  addBookHandler, getAllBooksHandler, getBookById, editBookById, deleteBookById,
 };
